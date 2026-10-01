@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#f4f5f5" />
+  <title>楼娱限定团 · FINAL 9</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-theme="home">
+<main id="app">
+  <section id="screen-home" class="screen active home-screen">
+    <div class="home-shell">
+      <header class="site-head">
+        <div class="site-brand">SDFJ <span>LIMITED GROUP</span></div>
+        <div class="site-meta">60 CANDIDATES · FINAL 9</div>
+      </header>
+
+      <div class="hero">
+        <div class="hero-title-block">
+          <p class="eyebrow">PICK YOUR OWN LINE-UP</p>
+          <h1>楼娱限定团</h1>
+          <div class="final-mark"><span>FINAL</span><b>9</b></div>
+          <p class="hero-desc">从 60 位候选中一路选择，留下属于你的最终 9 人阵容。</p>
+          <button id="start-btn" class="btn primary">开始选人 <span>→</span></button>
+        </div>
+        <div class="hero-stack" id="hero-stack" aria-hidden="true"></div>
+      </div>
+
+      <div class="home-steps">
+        <span>01 初舞台 · 4选2</span>
+        <span>02 晋级赛 · 4选2</span>
+        <span>03 复活赛 · 固定3人</span>
+        <span>04 最终席位 · 2选1</span>
+        <span>05 定位 / 成团</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-pick" class="screen">
+    <div class="page-shell">
+      <header class="topbar">
+        <button class="icon-btn" id="back-pick-btn" aria-label="返回上一组">←</button>
+        <div>
+          <p class="eyebrow" id="stage-kicker"></p>
+          <h2><span id="stage-name"></span><small id="stage-rule"></small></h2>
+        </div>
+        <div class="progress" id="progress-text"></div>
+      </header>
+      <div class="stage-copy">
+        <p id="stage-desc"></p>
+        <span id="coverage-text"></span>
+      </div>
+      <div id="card-grid" class="card-grid"></div>
+      <div class="sticky-action">
+        <span id="selection-count" class="selection-count"></span>
+        <button id="next-pick-btn" class="btn primary" disabled>确认选择 <span>→</span></button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-revival" class="screen">
+    <div class="page-shell wide">
+      <header class="topbar">
+        <button class="icon-btn" id="back-revival-btn" aria-label="返回晋级赛">←</button>
+        <div><p class="eyebrow">03 / REVIVAL</p><h2>复活赛 <small>固定 3 人</small></h2></div>
+        <div class="progress">SECOND CHANCE</div>
+      </header>
+      <div class="stage-copy"><p id="revival-quote">“幸好，有些告别还有反悔的机会。”</p></div>
+      <div class="revival-toolbar"><strong id="revival-count">已复活 0 / 3</strong><span><b id="revival-pool-count">0</b> 人待返场 · 三个返场名额</span></div>
+      <div id="revival-grid" class="battle-grid revival-grid"></div>
+      <div class="sticky-action"><span class="selection-count">选满三人后继续</span><button id="finish-revival-btn" class="btn primary" disabled>带他们回场 <span>→</span></button></div>
+    </div>
+  </section>
+
+  <section id="screen-position" class="screen">
+    <div class="page-shell wide">
+      <header class="topbar">
+        <button class="icon-btn" id="back-position-btn" aria-label="返回最终选择">←</button>
+        <div><p class="eyebrow">05 / POSITION</p><h2>定位分配</h2></div>
+        <div class="progress">MULTI SELECT</div>
+      </header>
+      <div class="stage-copy"><p>人已经齐了，接下来安排定位。一个人可以身兼数职，一个定位也可以多人共享。</p><span>完全选填，不想分定位也可以直接成团</span></div>
+      <div class="position-layout">
+        <aside id="position-list" class="position-list"></aside>
+        <section><p class="position-tip" id="position-tip"></p><div id="position-members" class="position-members"></div></section>
+      </div>
+      <div class="sticky-action"><span class="selection-count" id="position-validation">定位是加分项，不想分也可以直接成团。</span><button id="finish-position-btn" class="btn primary" disabled>正式成团 <span>→</span></button></div>
+    </div>
+  </section>
+
+  <section id="screen-result" class="screen result-screen">
+    <div class="result-decor decor-a"></div><div class="result-decor decor-b"></div>
+    <div class="page-shell wide result-shell">
+      <div class="result-head">
+        <p class="eyebrow">YOUR FINAL 9 · LIMITED DEBUT LINE-UP</p>
+        <div class="result-title-row"><span class="result-number">09</span><h2 id="result-team-title">你的楼娱限定团</h2><span class="result-star">✦</span></div>
+        <p class="result-sub" id="result-sub">“好了，现在是你的九个人。”</p>
+        <div class="team-name-panel">
+          <label for="team-name-input">给他们一个名字</label>
+          <div class="team-name-control"><input id="team-name-input" maxlength="18" placeholder="输入团名（选填）" autocomplete="off"><span id="team-name-count">0 / 18</span></div>
+        </div>
+        <div class="view-switch"><button id="fan-view-btn" class="active">聚焦模式</button><button id="grid-view-btn">九宫格</button></div>
+      </div>
+      <div id="showcase" class="showcase fan-mode">
+        <button class="fan-arrow fan-prev" id="fan-prev" aria-label="上一个成员">‹</button>
+        <div id="final-grid" class="final-grid"></div>
+        <button class="fan-arrow fan-next" id="fan-next" aria-label="下一个成员">›</button>
+      </div>
+      <p class="focus-name" id="focus-name"></p><p class="gesture-hint" id="gesture-hint">滚动滚轮或左右滑动触控板切换成员</p>
+      <div class="result-actions"><button id="save-btn" class="btn primary">生成成团海报</button><button id="restart-btn" class="btn ghost">再玩一次</button></div><p id="save-tip" class="save-tip"></p>
+    </div>
+  </section>
+</main>
+
+<div id="poster-modal" class="modal" aria-hidden="true">
+  <div class="modal-card">
+    <div class="modal-head"><strong>成团海报</strong><button id="close-modal" class="icon-btn">×</button></div>
+    <div class="poster-preview-wrap"><img id="poster-preview" alt="成团海报预览" /></div>
+    <div class="modal-actions"><a id="download-poster" class="btn primary" download="我的楼娱限定团_FINAL9.png">下载图片</a><span>手机端也可以长按预览图保存</span></div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="poster-data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
