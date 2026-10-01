@@ -66,3 +66,19 @@ body,body[data-theme="home"]{background:linear-gradient(125deg,var(--bg) 0%,#fbf
 .candidate-card,.battle-card,.position-member,.final-member,.hero-stack,.showcase{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .candidate-card img,.battle-card img,.position-member img,.final-member img,.hero-stack img{-webkit-user-drag:none;user-drag:none;pointer-events:none;-webkit-user-select:none;user-select:none}
 img::selection,.candidate-card::selection,.battle-card::selection,.position-member::selection,.final-member::selection{background:transparent}
+
+/* V2.11 — stable poster preview and mobile-safe result controls */
+@media(max-width:520px){
+  .result-shell{padding-left:9px;padding-right:9px}
+  .result-title-row{gap:8px}.result-head h2{font-size:31px}.result-number{font-size:20px}
+  .result-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 3px}
+  .result-actions .btn{width:100%;padding-left:10px;padding-right:10px}
+  .modal{padding:8px;padding-bottom:max(8px,env(safe-area-inset-bottom))}
+  .modal-card{width:100%;max-height:calc(100svh - 16px);border-radius:13px;padding:10px}
+  .modal-head{min-height:38px;padding-left:3px}
+  .poster-preview-wrap{min-height:0;flex:1;padding:6px;overflow:auto;-webkit-overflow-scrolling:touch}
+  .poster-preview-wrap img{width:100%;max-height:none}
+  .modal-actions{gap:7px;margin-top:8px}
+  .modal-actions .btn{width:100%;text-align:center}
+  .modal-actions span{text-align:center;line-height:1.45}
+}

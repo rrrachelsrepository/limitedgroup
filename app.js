@@ -72,33 +72,41 @@ $('#showcase').addEventListener('pointerdown',e=>{if(!$('#showcase').classList.c
 $('#showcase').addEventListener('pointerup',e=>{if(dragX===null)return;const dx=e.clientX-dragX;if(Math.abs(dx)>34)shiftFocus(dx<0?1:-1);dragX=null});
 function loadImg(src){return new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=reject;im.src=src})}
 function roundRect(ctx,x,y,w,h,r){const rr=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+rr,y);ctx.arcTo(x+w,y,x+w,y+h,rr);ctx.arcTo(x+w,y+h,x,y+h,rr);ctx.arcTo(x,y+h,x,y,rr);ctx.arcTo(x,y,x+w,y,rr);ctx.closePath()}
-async function makePoster(){const W=1080,H=1440,c=document.createElement('canvas');c.width=W;c.height=H;const ctx=c.getContext('2d');const grad=ctx.createLinearGradient(0,0,W,H);grad.addColorStop(0,'#f7f8fb');grad.addColorStop(.5,'#edf1f7');grad.addColorStop(1,'#e8e5f1');ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);ctx.strokeStyle='rgba(93,103,125,.28)';ctx.lineWidth=2;ctx.strokeRect(28,28,W-56,H-56);ctx.textAlign='center';ctx.fillStyle='#15191e';ctx.font='italic 36px Georgia';ctx.fillText('09  ·  LIMITED DEBUT LINE-UP',W/2,72);ctx.font='500 59px "Songti SC","STSong",serif';ctx.fillText(state.teamName||'你的楼娱限定团',W/2,142);ctx.fillStyle='#7d8791';ctx.font='16px Arial';ctx.fillText('YOUR FINAL 9 · PICKED BY YOU',W/2,181);const margin=50,gap=16,cardW=(W-margin*2-gap*2)/3,cardH=350,imgH=259,startY=222;for(let i=0;i<9;i++){const p=state.finalNine[i],col=i%3,row=Math.floor(i/3),x=margin+col*(cardW+gap),y=startY+row*(cardH+gap);ctx.save();ctx.fillStyle='rgba(255,255,255,.94)';roundRect(ctx,x,y,cardW,cardH,10);ctx.fill();ctx.strokeStyle='rgba(125,136,147,.35)';ctx.stroke();ctx.clip();try{const safeSrc=(typeof POSTER_IMAGES!=='undefined'&&POSTER_IMAGES[p.id])||p.image;const im=await loadImg(safeSrc);const ir=im.width/im.height,tr=cardW/imgH;let sx=0,sy=0,sw=im.width,sh=im.height;if(ir>tr){sw=im.height*tr;sx=(im.width-sw)/2}else{sh=im.width/tr;sy=(im.height-sh)/2}ctx.drawImage(im,sx,sy,sw,sh,x,y,cardW,imgH)}catch(e){ctx.fillStyle='#e7e9eb';ctx.fillRect(x,y,cardW,imgH)}ctx.restore();ctx.fillStyle='#fff';ctx.font='italic 15px Georgia';ctx.textAlign='left';ctx.fillText(`0${i+1}`,x+12,y+22);ctx.fillStyle='#17191d';ctx.font='600 23px "PingFang SC","Microsoft YaHei",sans-serif';ctx.fillText(p.name,x+15,y+imgH+33);const tags=tagList(p);ctx.fillStyle='#747e88';ctx.font='14px "PingFang SC","Microsoft YaHei",sans-serif';ctx.fillText((tags.length?tags:['成员']).join(' · '),x+15,y+imgH+62)}ctx.textAlign='center';ctx.fillStyle='#7f8891';ctx.font='13px Arial';ctx.fillText('SDFJ LIMITED GROUP · FINAL 9',W/2,H-36);return c}
+function drawPortraitFit(ctx,im,x,y,w,h){
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x,y,w,h);
+  ctx.clip();
+  ctx.fillStyle='#f2f4f8';
+  ctx.fillRect(x,y,w,h);
+  const scale=Math.min(w/im.width,h/im.height),dw=im.width*scale,dh=im.height*scale;
+  ctx.drawImage(im,x+(w-dw)/2,y+(h-dh)/2,dw,dh);
+  ctx.restore();
+}
+function fitCanvasText(ctx,text,maxWidth){
+  if(ctx.measureText(text).width<=maxWidth)return text;
+  const suffix='…';let output=text;
+  while(output&&ctx.measureText(output+suffix).width>maxWidth)output=output.slice(0,-1);
+  return output+suffix;
+}
+async function makePoster(){
+  const W=1080,H=1560,c=document.createElement('canvas');c.width=W;c.height=H;const ctx=c.getContext('2d');
+  const grad=ctx.createLinearGradient(0,0,W,H);grad.addColorStop(0,'#f7f8fb');grad.addColorStop(.5,'#edf1f7');grad.addColorStop(1,'#e8e5f1');ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(93,103,125,.28)';ctx.lineWidth=2;ctx.strokeRect(28,28,W-56,H-56);ctx.textAlign='center';ctx.fillStyle='#15191e';ctx.font='italic 36px Georgia';ctx.fillText('09  ·  LIMITED DEBUT LINE-UP',W/2,72);ctx.font='500 59px "Songti SC","STSong",serif';ctx.fillText(fitCanvasText(ctx,state.teamName||'你的楼娱限定团',W-180),W/2,142);ctx.fillStyle='#7d8791';ctx.font='16px Arial';ctx.fillText('YOUR FINAL 9 · PICKED BY YOU',W/2,181);
+  const margin=50,gap=16,cardW=(W-margin*2-gap*2)/3,cardH=390,imgH=300,startY=222;
+  for(let i=0;i<9;i++){
+    const p=state.finalNine[i],col=i%3,row=Math.floor(i/3),x=margin+col*(cardW+gap),y=startY+row*(cardH+gap);
+    ctx.save();ctx.fillStyle='rgba(255,255,255,.94)';roundRect(ctx,x,y,cardW,cardH,10);ctx.fill();ctx.strokeStyle='rgba(125,136,147,.35)';ctx.stroke();ctx.clip();
+    try{const safeSrc=(typeof POSTER_IMAGES!=='undefined'&&POSTER_IMAGES[p.id])||p.image;drawPortraitFit(ctx,await loadImg(safeSrc),x,y,cardW,imgH)}catch(e){ctx.fillStyle='#e7e9eb';ctx.fillRect(x,y,cardW,imgH)}
+    ctx.restore();ctx.fillStyle='#fff';ctx.font='italic 15px Georgia';ctx.textAlign='left';ctx.fillText(`0${i+1}`,x+12,y+22);ctx.fillStyle='#17191d';ctx.font='600 23px "PingFang SC","Microsoft YaHei",sans-serif';ctx.fillText(fitCanvasText(ctx,p.name,cardW-30),x+15,y+imgH+33);const tags=tagList(p);ctx.fillStyle='#747e88';ctx.font='14px "PingFang SC","Microsoft YaHei",sans-serif';ctx.fillText(fitCanvasText(ctx,(tags.length?tags:['成员']).join(' · '),cardW-30),x+15,y+imgH+62);
+  }
+  ctx.textAlign='center';ctx.fillStyle='#7f8891';ctx.font='13px Arial';ctx.fillText('SDFJ LIMITED GROUP · FINAL 9',W/2,H-36);return c;
+}
 async function exportPoster(){const tip=$('#save-tip');tip.textContent='正在排版你的成团海报…';try{const canvas=await makePoster();const url=canvas.toDataURL('image/png');$('#poster-preview').src=url;$('#download-poster').href=url;$('#poster-modal').classList.add('open');$('#poster-modal').setAttribute('aria-hidden','false');tip.textContent='好了，海报已经生成。'}catch(e){console.error(e);tip.textContent='这次没生成成功，刷新后再试一次。'}}
 $('#start-btn').onclick=startGame;$('#back-pick-btn').onclick=goBackPick;$('#back-revival-btn').onclick=()=>{state.revived=[];state.round2Index=state.round2Groups.length-1;showScreen('pick','round2');renderRound2()};$('#finish-revival-btn').onclick=initFinalPick;$('#back-position-btn').onclick=()=>{state.positions=blankPositions();state.finalIndex=state.finalGroups.length-1;showScreen('pick','final');renderFinalPick()};$('#finish-position-btn').onclick=renderResult;$('#fan-view-btn').onclick=()=>setView('fan');$('#grid-view-btn').onclick=()=>setView('grid');$('#fan-prev').onclick=()=>shiftFocus(-1);$('#fan-next').onclick=()=>shiftFocus(1);$('#restart-btn').onclick=()=>{resetState();renderHero();showScreen('home','home')};$('#save-btn').onclick=exportPoster;$('#close-modal').onclick=()=>{$('#poster-modal').classList.remove('open');$('#poster-modal').setAttribute('aria-hidden','true')};$('#poster-modal').onclick=e=>{if(e.target===$('#poster-modal'))$('#close-modal').click()};
 $('#team-name-input').addEventListener('input',e=>updateTeamName(e.target.value));
 window.addEventListener('resize',()=>{if($('#screen-result').classList.contains('active')&&$('#showcase').classList.contains('fan-mode'))layoutFan()});
 renderHero();
-
-// V2.8 poster renderer: preserve the complete portrait while keeping each card visually full.
-function drawPortraitFit(ctx,im,x,y,w,h){
-  const cover=Math.max(w/im.width,h/im.height),cw=im.width*cover,ch=im.height*cover;
-  ctx.save();ctx.filter='blur(20px)';ctx.globalAlpha=.22;ctx.drawImage(im,x+(w-cw)/2,y+(h-ch)/2,cw,ch);ctx.restore();
-  const contain=Math.min(w/im.width,h/im.height),dw=im.width*contain,dh=im.height*contain;
-  ctx.drawImage(im,x+(w-dw)/2,y+(h-dh)/2,dw,dh);
-}
-makePoster=async function(){
-  const W=1080,H=1560,c=document.createElement('canvas');c.width=W;c.height=H;const ctx=c.getContext('2d');
-  const grad=ctx.createLinearGradient(0,0,W,H);grad.addColorStop(0,'#f7f8fb');grad.addColorStop(.5,'#edf1f7');grad.addColorStop(1,'#e8e5f1');ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
-  ctx.strokeStyle='rgba(93,103,125,.28)';ctx.lineWidth=2;ctx.strokeRect(28,28,W-56,H-56);ctx.textAlign='center';ctx.fillStyle='#15191e';ctx.font='italic 36px Georgia';ctx.fillText('09  ·  LIMITED DEBUT LINE-UP',W/2,72);ctx.font='500 59px "Songti SC","STSong",serif';ctx.fillText(state.teamName||'你的楼娱限定团',W/2,142);ctx.fillStyle='#7d8791';ctx.font='16px Arial';ctx.fillText('YOUR FINAL 9 · PICKED BY YOU',W/2,181);
-  const margin=50,gap=16,cardW=(W-margin*2-gap*2)/3,cardH=390,imgH=300,startY=222;
-  for(let i=0;i<9;i++){
-    const p=state.finalNine[i],col=i%3,row=Math.floor(i/3),x=margin+col*(cardW+gap),y=startY+row*(cardH+gap);
-    ctx.save();ctx.fillStyle='rgba(255,255,255,.94)';roundRect(ctx,x,y,cardW,cardH,10);ctx.fill();ctx.strokeStyle='rgba(125,136,147,.35)';ctx.stroke();ctx.clip();
-    try{const safeSrc=(typeof POSTER_IMAGES!=='undefined'&&POSTER_IMAGES[p.id])||p.image;const im=await loadImg(safeSrc);ctx.fillStyle='#edf0f5';ctx.fillRect(x,y,cardW,imgH);drawPortraitFit(ctx,im,x,y,cardW,imgH)}catch(e){ctx.fillStyle='#e7e9eb';ctx.fillRect(x,y,cardW,imgH)}
-    ctx.restore();ctx.fillStyle='#fff';ctx.font='italic 15px Georgia';ctx.textAlign='left';ctx.fillText(`0${i+1}`,x+12,y+22);ctx.fillStyle='#17191d';ctx.font='600 23px "PingFang SC","Microsoft YaHei",sans-serif';ctx.fillText(p.name,x+15,y+imgH+33);const tags=tagList(p);ctx.fillStyle='#747e88';ctx.font='14px "PingFang SC","Microsoft YaHei",sans-serif';ctx.fillText((tags.length?tags:['成员']).join(' · '),x+15,y+imgH+62);
-  }
-  ctx.textAlign='center';ctx.fillStyle='#7f8891';ctx.font='13px Arial';ctx.fillText('SDFJ LIMITED GROUP · FINAL 9',W/2,H-36);return c;
-};
 
 // Stop browsers from applying the native blue selection/drag overlay to portrait cards.
 document.addEventListener('dragstart',e=>{if(e.target instanceof HTMLImageElement)e.preventDefault()});
