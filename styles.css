@@ -69,6 +69,7 @@ img::selection,.candidate-card::selection,.battle-card::selection,.position-memb
 
 /* V2.11 — stable poster preview and mobile-safe result controls */
 @media(max-width:520px){
+  .home-screen .hero-desc{font-size:clamp(13px,4vw,16px);white-space:nowrap}
   .result-shell{padding-left:9px;padding-right:9px}
   .result-title-row{gap:8px}.result-head h2{font-size:31px}.result-number{font-size:20px}
   .result-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 3px}
