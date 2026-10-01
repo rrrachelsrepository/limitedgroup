@@ -12,7 +12,7 @@ function chunk(a,n){const out=[];for(let i=0;i<a.length;i+=n)out.push(a.slice(i,
 function setTheme(theme){document.body.dataset.theme=theme}
 function showScreen(name,theme=name){$$('.screen').forEach(s=>s.classList.remove('active'));$(`#screen-${name}`).classList.add('active');setTheme(theme);window.scrollTo({top:0,behavior:'instant'})}
 function cardHTML(p,selected=false){return `<article class="candidate-card ${selected?'selected':''}" data-id="${p.id}"><img src="${p.image}" alt="${p.name}" loading="eager"><div class="name">${p.name}</div></article>`}
-function renderHero(){const picks=shuffle(CANDIDATES).slice(0,4);$('#hero-stack').innerHTML=picks.map(p=>`<figure><img src="${p.image}" alt=""></figure>`).join('')}
+function renderHero(){const picks=shuffle(CANDIDATES).slice(0,5);$('#hero-stack').innerHTML=picks.map(p=>`<figure><img src="${p.image}" alt="" loading="eager" decoding="async"></figure>`).join('')}
 function resetState(){Object.assign(state,{phase:'home',round1Groups:chunk(shuffle(CANDIDATES),4),round1Index:0,round1Selections:[],round1Winners:[],round1Losers:[],round1Signature:'',round2Groups:[],round2Index:0,round2Selections:[],round2Winners:[],round2Losers:[],revived:[],finalGroups:[],finalIndex:0,finalSelections:[],finalNine:[],finalSignature:'',activePosition:'leader',positions:blankPositions(),focusIndex:4,teamName:''})}
 function computeRound(groups,selections){const winners=[],losers=[];groups.forEach((g,i)=>{const ids=new Set(selections[i]||[]);g.forEach(p=>(ids.has(p.id)?winners:losers).push(p))});return{winners,losers}}
 function signature(arr){return arr.map(x=>x.id).sort().join('|')}
@@ -41,7 +41,25 @@ function renderRound2(){state.phase='round2';setTheme('round2');const g=state.ro
 function goBackPick(){if(state.phase==='round1'){if(state.round1Index>0){state.round1Index--;renderRound1()}return}if(state.phase==='round2'){if(state.round2Index>0){state.round2Index--;renderRound2()}else{state.round1Index=state.round1Groups.length-1;state.phase='round1';renderRound1()}return}if(state.phase==='final'){if(state.finalIndex>0){state.finalIndex--;renderFinalPick()}else initRevival()}}
 function initRevival(){const r=computeRound(state.round2Groups,state.round2Selections);state.round2Winners=r.winners;state.round2Losers=r.losers;state.phase='revival';showScreen('revival','revival');renderRevival()}
 function revivalPool(){const r=computeRound(state.round2Groups,state.round2Selections);return r.losers.length?r.losers:[...state.round2Losers]}
-function renderRevival(){const pool=revivalPool();$('#revival-quote').textContent=randomQuote('revival');$('#revival-pool-count').textContent=pool.length;$('#revival-count').textContent=`已复活 ${state.revived.length} / 3`;$('#revival-grid').innerHTML=pool.map(p=>`<article class="battle-card ${state.revived.some(x=>x.id===p.id)?'revived':''}" data-id="${p.id}"><img src="${p.image}" alt="${p.name}" loading="lazy"><div class="name">${p.name}</div></article>`).join('');$$('#revival-grid .battle-card').forEach(c=>c.onclick=()=>{const p=pool.find(x=>x.id===c.dataset.id),on=state.revived.some(x=>x.id===p.id);if(on)state.revived=state.revived.filter(x=>x.id!==p.id);else if(state.revived.length<3)state.revived.push(p);renderRevival()});$('#finish-revival-btn').disabled=state.revived.length!==3}
+function renderRevival(){
+  const pool=revivalPool();
+  $('#revival-quote').textContent=randomQuote('revival');
+  $('#revival-pool-count').textContent=pool.length;
+  $('#revival-grid').innerHTML=pool.map((p,i)=>`<article class="battle-card" data-id="${p.id}"><img src="${p.image}" alt="${p.name}" loading="${i<6?'eager':'lazy'}" decoding="async"><div class="name">${p.name}</div></article>`).join('');
+  const sync=()=>{
+    const selected=new Set(state.revived.map(x=>x.id));
+    $$('#revival-grid .battle-card').forEach(card=>card.classList.toggle('revived',selected.has(card.dataset.id)));
+    $('#revival-count').textContent=`已复活 ${state.revived.length} / 3`;
+    $('#finish-revival-btn').disabled=state.revived.length!==3;
+  };
+  $$('#revival-grid .battle-card').forEach(card=>card.onclick=()=>{
+    const p=pool.find(x=>x.id===card.dataset.id),on=state.revived.some(x=>x.id===p.id);
+    if(on)state.revived=state.revived.filter(x=>x.id!==p.id);
+    else if(state.revived.length<3)state.revived.push(p);
+    sync();
+  });
+  sync();
+}
 function initFinalPick(){const pool=[...state.round2Winners,...state.revived],sig=signature(pool);if(!state.finalGroups.length||sig!==state.finalSignature){state.finalGroups=chunk(shuffle(pool),2);state.finalSelections=[];state.finalIndex=0;state.finalNine=[];state.finalSignature=sig}else state.finalIndex=Math.min(state.finalIndex,state.finalGroups.length-1);state.phase='final';showScreen('pick','final');renderFinalPick()}
 function renderFinalPick(){state.phase='final';setTheme('final');const g=state.finalGroups[state.finalIndex],pre=state.finalSelections[state.finalIndex]||[];$('#stage-kicker').textContent='04 / FINAL PICK';$('#stage-name').textContent='最终席位';$('#stage-rule').textContent='2选1';setStageQuote('final');$('#progress-text').textContent=`${state.finalIndex+1} / ${state.finalGroups.length}`;$('#card-grid').innerHTML=g.map(p=>cardHTML(p,pre.includes(p.id))).join('');setBackEnabled(true);bindPickCards(1,pre,ids=>{state.finalSelections[state.finalIndex]=ids;state.finalIndex++;if(state.finalIndex<state.finalGroups.length){renderFinalPick();return}const r=computeRound(state.finalGroups,state.finalSelections);state.finalNine=r.winners;initPositions()})}
 function initPositions(){showScreen('position','position');renderPositions()}
